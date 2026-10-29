@@ -5,11 +5,10 @@ const allowedOrigins = [
   "https://ai-chat-test.rudakenai.pages.dev"
 ];
 
-
-
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin");
+
     const cors = {
       "Access-Control-Allow-Origin":
         allowedOrigins.includes(origin) ? origin : "null",
@@ -37,6 +36,8 @@ export default {
     }
 
     if (!allowedOrigins.includes(origin)) {
+      console.error("Chatbot CORS origin rejected");
+
       return new Response(
         JSON.stringify({ error: "Forbidden" }),
         { status: 403, headers: cors }
@@ -45,7 +46,12 @@ export default {
 
     try {
       if (!env.OPENAI_API_KEY) {
-        throw new Error("Missing API key");
+        console.error("Chatbot configuration: missing API key");
+
+        return new Response(
+          JSON.stringify({ error: "AI configuration unavailable" }),
+          { status: 503, headers: cors }
+        );
       }
 
       const body = await request.json();
@@ -81,6 +87,29 @@ export default {
       );
 
       if (!ai.ok) {
+        let errorType = "unknown";
+        let errorCode = "unknown";
+
+        try {
+          const errorData = await ai.json();
+
+          errorType = String(
+            errorData?.error?.type || "unknown"
+          ).slice(0, 80);
+
+          errorCode = String(
+            errorData?.error?.code || "unknown"
+          ).slice(0, 80);
+        } catch {
+          errorType = "unreadable_error_response";
+        }
+
+        console.error("OpenAI API request failed", {
+          status: ai.status,
+          type: errorType,
+          code: errorCode
+        });
+
         return new Response(
           JSON.stringify({ error: "AI service unavailable" }),
           { status: 502, headers: cors }
@@ -88,17 +117,31 @@ export default {
       }
 
       const data = await ai.json();
+
       const reply = (data.output || [])
         .flatMap(item => item.content || [])
         .filter(item => item.type === "output_text")
         .map(item => item.text)
         .join("\n");
 
+      if (!reply) {
+        console.error("OpenAI response contained no output text");
+      }
+
       return new Response(
-        JSON.stringify({ reply: reply || "Please try again." }),
-        { headers: cors }
+        JSON.stringify({
+          reply: reply || "Please try again."
+        }),
+        { status: 200, headers: cors }
       );
-    } catch {
+
+    } catch (error) {
+      console.error("Chatbot request failed", {
+        type: error instanceof SyntaxError
+          ? "invalid_json"
+          : "request_or_runtime_error"
+      });
+
       return new Response(
         JSON.stringify({ error: "Request failed" }),
         { status: 500, headers: cors }
@@ -106,4 +149,5 @@ export default {
     }
   }
 };
-// Trigger cloudflare deployment 
+
+

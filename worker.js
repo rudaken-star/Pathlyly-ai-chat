@@ -1,7 +1,10 @@
 
 const allowedOrigins = [
-  "https://rudakenai.pages.dev"
+  "https://rudakenai.pages.dev",
+  "https://ai-chat-test.rudakenai.pages.dev"
 ];
+
+
 
 export default {
   async fetch(request, env) {

@@ -1,4 +1,5 @@
 
+
 const allowedOrigins = [
   "https://rudakenai.pages.dev",
   "https://ai-chat-test.rudakenai.pages.dev"

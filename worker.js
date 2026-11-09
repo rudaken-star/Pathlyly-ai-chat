@@ -4,8 +4,10 @@
 const allowedOrigins = [
   "https://rudakenai.pages.dev",
   "https://ai-chat-test.rudakenai.pages.dev",
-  "https://dental-demo.rudakenai.pages.dev"
-];https://pathlyly-logo-fix.rudakenai.pages.dev
+  "https://dental-demo.rudakenai.pages.dev",
+  "https://pathlyly-logo-fix.rudakenai.pages.dev"
+];
+  
 
 
 export default {

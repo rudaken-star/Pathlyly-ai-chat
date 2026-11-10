@@ -10,7 +10,7 @@ const allowedOrigins = [
   "https://pathlyly-logo-fix.rudakenai.pages.dev"
 ];
 
-];
+
   
 
 
